@@ -1,0 +1,3301 @@
+esphome:
+  platformio_options:
+    build_flags:
+##      - -DCONFIG_ARDUINO_LOOP_STACK_SIZE=16384  
+      - -Wframe-larger-than=1000
+  name: $devicename
+  on_boot:
+    priority: 800
+    # ...
+    then:
+      - switch.turn_on: ExtSupplyEnable
+      
+external_components:
+  - source: github://epiclabs-io/esphome@fix-885-old
+    components: wifi 
+    refresh: 0s
+  - source: github://pawel3410/esphome/edit/dev/esphome/components/mcp23s17/mcp23s17.h
+    components: mcp23s17
+    refresh: 0s
+
+esp32:
+  board: esp32dev
+#  framework:
+#    type: arduino
+#    version: '2.0.2'
+#    platform_version: '4.0.0'
+
+# Enable logging
+logger:
+  level: DEBUG
+  logs:
+    mqtt.component: INFO
+    mqtt.client: INFO
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "832ed3df0228a523a67dfb0e74e17921"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  
+  manual_ip:
+    static_ip: 192.168.17.230
+    gateway: 192.168.17.1
+    subnet: 255.255.255.0
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${devicename} Fallback Hotspot"
+    password: "lMQl88VeZ7jW"
+    
+web_server:
+  port: 80
+  local: true
+  
+debug:
+  update_interval: 10s
+
+  
+mqtt:
+  broker: 192.168.17.201
+  username: mqtt
+  password: mqtt12345
+  reboot_timeout: 0s
+
+captive_portal:
+
+substitutions:
+ devicename: esp32230
+ cs0_pin: GPIO19
+ cs1_pin: GPIO21
+ clk_pin: GPIO4
+ mosi_pin: GPIO16
+ miso_pin: GPIO17
+ sda_pin: GPIO21
+ scl_pin: GPIO19
+ debounce: 10ms
+  
+sensor:
+  - platform: wifi_signal
+    name: "${devicename}_RSSI"
+    update_interval: 10s
+  
+              
+  - platform: debug
+#   free:
+#     name: "${devicename}_Heap_Free"
+#   block:
+#     name: "${devicename}Heap_Max_Block"
+    loop_time:
+     name: "${devicename}_loop_time"
+      
+#-------------------------------------------------------------------------------
+
+
+ 
+spi:
+  clk_pin: $clk_pin
+  mosi_pin: $mosi_pin
+  miso_pin: $miso_pin
+mcp23s17:
+  - id: 'mcp23_i_0_15'
+    cs_pin: $cs0_pin
+    deviceaddress: 0
+  - id: 'mcp23_i_16_31'
+    cs_pin: $cs0_pin
+    deviceaddress: 1
+  - id: 'mcp23_i_32_47'
+    cs_pin: $cs0_pin
+    deviceaddress: 2
+  - id: 'mcp23_i_48_63'
+    cs_pin: $cs0_pin
+    deviceaddress: 3
+  - id: 'mcp23_i_64_79'
+    cs_pin: $cs0_pin
+    deviceaddress: 4
+  - id: 'mcp23_i_80_95'
+    cs_pin: $cs0_pin
+    deviceaddress: 5
+#  - id: 'mcp23_i_96_111'
+#    cs_pin: $cs0_pin
+#    deviceaddress: 6
+#  - id: 'mcp23_i_112_128'
+#    cs_pin: $cs0_pin
+#    deviceaddress: 7
+#
+  - id: 'mcp23_o_0_15'
+    cs_pin: $cs1_pin
+    deviceaddress: 0
+  - id: 'mcp23_o_16_31'
+    cs_pin: $cs1_pin
+    deviceaddress: 1
+  - id: 'mcp23_o_32_47'
+    cs_pin: $cs1_pin
+    deviceaddress: 2
+  - id: 'mcp23_o_48_63'
+    cs_pin: $cs1_pin
+    deviceaddress: 3
+  - id: 'mcp23_o_64_79'
+    cs_pin: $cs1_pin
+    deviceaddress: 4
+  - id: 'mcp23_o_80_95'
+    cs_pin: $cs1_pin
+    deviceaddress: 5
+#  - id: 'mcp23_o_96_111'
+#    cs_pin: $cs1_pin
+#    deviceaddress: 6
+#mcp23s17:
+#  - id: 'mcp23_o_112_128'
+#    cs_pin: $cs1_pin
+#    deviceaddress: 7
+#-------------------------------------------------------------------------------
+
+globals:
+  - id: roleta_pokoj_3_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+
+  - id: roleta_lazienka_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+
+  - id: roleta_kuchnia_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+  - id: roleta_spizarnia_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+  - id: roleta_pokoj_2_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+  - id: roleta_pokoj_1_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+  - id: roleta_taras_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+  - id: roleta_salon_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+  - id: roleta_kotlownia_manual
+    type: bool
+    restore_value: no
+    initial_value: '0'
+    
+#-------------------------------------------------------------------------------
+switch:
+  - platform: gpio
+    pin: 18
+    name: "ExtSupplyEnable"
+    id: ExtSupplyEnable
+    restore_mode: ALWAYS_ON
+    
+#  - platform: output
+#    name: "testswitch"
+#    output: mcp_o_25
+
+  - platform: output
+    name: "nawadnianie_5"
+    id: "nawadnianie_5"
+    output: mcp_o_53
+    
+  - platform: output
+    name: "nawadnianie_6"
+    id: "nawadnianie_6"
+    output: mcp_o_54
+    
+  - platform: output
+    name: "nawadnianie_7"
+    id: "nawadnianie_7"
+    output: mcp_o_55
+    
+  
+  # internals:-------------------------------  
+  - platform: output
+    id: "roleta_pokoj_3_open"
+    output: mcp_o_7 
+    internal: true
+
+  - platform: output
+    id: "roleta_pokoj_3_close"
+    output: mcp_o_6 
+    internal: true
+
+  - platform: output
+    id: "roleta_lazienka_open"
+    output: mcp_o_5 
+    internal: true
+
+  - platform: output
+    id: "roleta_lazienka_close"
+    output: mcp_o_4 
+    internal: true
+
+  - platform: output
+    id: "roleta_kuchnia_open"
+    output: mcp_o_3 
+    internal: true
+
+  - platform: output
+    id: "roleta_kuchnia_close"
+    output: mcp_o_2 
+    internal: true
+
+  - platform: output
+    id: "roleta_spizarnia_open"
+    output: mcp_o_1 
+    internal: true
+
+  - platform: output
+    id: "roleta_spizarnia_close"
+    output: mcp_o_0 
+    internal: true
+
+  - platform: output
+    id: "roleta_pokoj_2_open"
+    output: mcp_o_23 
+    internal: true
+
+  - platform: output
+    id: "roleta_pokoj_2_close"
+    output: mcp_o_22 
+    internal: true
+
+  - platform: output
+    id: "roleta_pokoj_1_open"
+    output: mcp_o_21 
+    internal: true
+
+  - platform: output
+    id: "roleta_pokoj_1_close"
+    output: mcp_o_20 
+    internal: true
+
+  - platform: output
+    id: "roleta_taras_open"
+    output: mcp_o_19 
+    internal: true
+
+  - platform: output
+    id: "roleta_taras_close"
+    output: mcp_o_18 
+    internal: true
+
+  - platform: output
+    id: "roleta_salon_open"
+    output: mcp_o_17 
+    internal: true
+
+  - platform: output
+    id: "roleta_salon_close"
+    output: mcp_o_16 
+    internal: true
+#-------------------------------------------------------------------------------
+
+light:
+  - platform: binary
+    name: "lampa_1_A"
+    id: lampa_1_A
+    output: mcp_o_10
+
+  - platform: binary
+    name: "lampa_1_B"
+    id: lampa_1_B
+    output: mcp_o_11
+ 
+  - platform: binary
+    name: "lampa_2_A"
+    id: lampa_2_A
+    output: mcp_o_12
+
+  - platform: binary
+    name: "lampa_2_B"
+    id: lampa_2_B
+    output: mcp_o_13
+
+  - platform: binary
+    name: "lampa_3_A"
+    id: lampa_3_A
+    output: mcp_o_14
+
+  - platform: binary
+    name: "lampa_3_B"
+    id: lampa_3_B
+    output: mcp_o_15
+
+  - platform: binary
+    name: "lampa_6"
+    id: lampa_6
+    output: mcp_o_24
+
+  - platform: binary
+    name: "lampa_7_A1"
+    id: lampa_7_A1
+    output: mcp_o_25
+
+  - platform: binary
+    name: "lampa_7_A2"
+    id: lampa_7_A2
+    output: mcp_o_26
+
+  - platform: binary
+    name: "lampa_7_B1"
+    id: lampa_7_B1
+    output: mcp_o_27
+
+  - platform: binary
+    name: "lampa_7_B2"
+    id: lampa_7_B2
+    output: mcp_o_28
+
+  - platform: binary
+    name: "lampa_8_A1"
+    id: lampa_8_A1
+    output: mcp_o_29
+
+  - platform: binary
+    name: "lampa_8_A2"
+    id: lampa_8_A2
+    output: mcp_o_30
+
+  - platform: binary
+    name: "lampa_8_B1"
+    id: lampa_8_B1
+    output: mcp_o_31
+
+  - platform: binary
+    name: "lampa_8_B2"
+    id: lampa_8_B2
+    output: mcp_o_39
+
+  - platform: binary
+    name: "lampa_9"
+    id: lampa_9
+    output: mcp_o_38
+
+  - platform: binary
+    name: "lampa_10"
+    id: lampa_10
+    output: mcp_o_37
+
+  - platform: binary
+    name: "lampa_11"
+    id: lampa_11
+    output: mcp_o_52
+
+  - platform: binary
+    name: "lampa_12_A"
+    id: lampa_12_A
+    output: mcp_o_51
+
+  - platform: binary
+    name: "lampa_12_B"
+    id: lampa_12_B
+    output: mcp_o_50
+
+  - platform: binary
+    name: "lampa_wejscie_A"
+    id: lampa_wejscie_A
+    output: mcp_o_36
+
+  - platform: binary
+    name: "lampa_wejscie_B"
+    id: lampa_wejscie_B
+    output: mcp_o_35
+
+  - platform: binary
+    name: "lampa_taras_A"
+    id: lampa_taras_A
+    output: mcp_o_34
+    
+  - platform: binary
+    name: "lampa_taras_B"
+    id: lampa_taras_B
+    output: mcp_o_33
+    
+  - platform: binary
+    name: "lampa_ogrod"
+    id: lampa_ogrod
+    output: mcp_o_32
+
+#-------------------------------------------------------------------------------
+cover:
+  - platform: time_based
+    name: "roleta_pokoj_3"
+    id: roleta_pokoj_3
+    open_action:
+      - switch.turn_off: roleta_pokoj_3_close
+      - switch.turn_on: roleta_pokoj_3_open
+    open_duration: 18s
+
+    close_action:
+      - switch.turn_off: roleta_pokoj_3_open
+      - switch.turn_on: roleta_pokoj_3_close
+    close_duration: 18s
+
+    stop_action:
+      - switch.turn_off: roleta_pokoj_3_open
+      - switch.turn_off: roleta_pokoj_3_close
+      
+
+  - platform: time_based
+    name: "roleta_lazienka"
+    id: roleta_lazienka
+    open_action:
+      - switch.turn_off: roleta_lazienka_close
+      - switch.turn_on: roleta_lazienka_open
+    open_duration: 8s
+
+    close_action:
+      - switch.turn_off: roleta_lazienka_open
+      - switch.turn_on: roleta_lazienka_close
+    close_duration: 8s
+
+    stop_action:
+      - switch.turn_off: roleta_lazienka_open
+      - switch.turn_off: roleta_lazienka_close
+
+  - platform: time_based
+    name: "roleta_kuchnia"
+    id: roleta_kuchnia
+    open_action:
+      - switch.turn_off: roleta_kuchnia_close
+      - switch.turn_on: roleta_kuchnia_open
+    open_duration: 17s
+
+    close_action:
+      - switch.turn_off: roleta_kuchnia_open
+      - switch.turn_on: roleta_kuchnia_close
+    close_duration: 17s
+
+    stop_action:
+      - switch.turn_off: roleta_kuchnia_open
+      - switch.turn_off: roleta_kuchnia_close
+
+  - platform: time_based
+    name: "roleta_spizarnia"
+    id: roleta_spizarnia
+    open_action:
+      - switch.turn_off: roleta_spizarnia_close
+      - switch.turn_on: roleta_spizarnia_open
+    open_duration: 8s
+
+    close_action:
+      - switch.turn_off: roleta_spizarnia_open
+      - switch.turn_on: roleta_spizarnia_close
+    close_duration: 8s
+
+    stop_action:
+      - switch.turn_off: roleta_spizarnia_open
+      - switch.turn_off: roleta_spizarnia_close
+
+  - platform: time_based
+    name: "roleta_pokoj_2"
+    id: roleta_pokoj_2
+    open_action:
+      - switch.turn_off: roleta_pokoj_2_close
+      - switch.turn_on: roleta_pokoj_2_open
+    open_duration: 18s
+
+    close_action:
+      - switch.turn_off: roleta_pokoj_2_open
+      - switch.turn_on: roleta_pokoj_2_close
+    close_duration: 18s
+
+    stop_action:
+      - switch.turn_off: roleta_pokoj_2_open
+      - switch.turn_off: roleta_pokoj_2_close
+
+  - platform: time_based
+    name: "roleta_pokoj_1"
+    id: roleta_pokoj_1
+    open_action:
+      - switch.turn_off: roleta_pokoj_1_close
+      - switch.turn_on: roleta_pokoj_1_open
+    open_duration: 18s
+
+    close_action:
+      - switch.turn_off: roleta_pokoj_1_open
+      - switch.turn_on: roleta_pokoj_1_close
+    close_duration: 18s
+
+    stop_action:
+      - switch.turn_off: roleta_pokoj_1_open
+      - switch.turn_off: roleta_pokoj_1_close
+
+  - platform: time_based
+    name: "roleta_taras"
+    id: roleta_taras
+    open_action:
+      - switch.turn_off: roleta_taras_close
+      - switch.turn_on: roleta_taras_open
+    open_duration: 33s
+
+    close_action:
+      - switch.turn_off: roleta_taras_open
+      - switch.turn_on: roleta_taras_close
+    close_duration: 33s
+
+    stop_action:
+      - switch.turn_off: roleta_taras_open
+      - switch.turn_off: roleta_taras_close
+
+  - platform: time_based
+    name: "roleta_salon"
+    id: roleta_salon
+    open_action:
+      - switch.turn_off: roleta_salon_close
+      - switch.turn_on: roleta_salon_open
+    open_duration: 18s
+
+    close_action:
+      - switch.turn_off: roleta_salon_open
+      - switch.turn_on: roleta_salon_close
+    close_duration: 18s
+
+    stop_action:
+      - switch.turn_off: roleta_salon_open
+      - switch.turn_off: roleta_salon_close
+    has_built_in_endstop: true
+################################################################################
+binary_sensor:
+
+  - id: mcp_i_0
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 0
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_1
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 1
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_2
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 2
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_3
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 3
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_4
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 4
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_5
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 5
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_6
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 6
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_7
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 7
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_8
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 8
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_9
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 9
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_10
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 10
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_11
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 11
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_12
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 12
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_13
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 13
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_14
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 14
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_15
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_0_15
+      number: 15
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_16
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 0
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_17
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 1
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_18
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 2
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_19
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 3
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_20
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 4
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_21
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 5
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_22
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 6
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_23
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 7
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_24
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 8
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_1_B
+  - id: mcp_i_25
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 9
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_1_A
+      
+  - id: mcp_i_26
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 10
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_1).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_pokoj_1
+            else:
+              - cover.stop: roleta_pokoj_1
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.open: roleta_pokoj_1
+        - lambda: 'id(roleta_pokoj_1_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_1_manual) == 1;'
+            then:
+              - cover.stop: roleta_pokoj_1
+              - lambda: 'id(roleta_pokoj_1_manual)=0;'
+#      - cover.open: roleta_pokoj_1
+  - id: mcp_i_27
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 11
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_1).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_pokoj_1
+            else:
+              - cover.stop: roleta_pokoj_1
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+      - cover.close: roleta_pokoj_1
+      - lambda: 'id(roleta_pokoj_1_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_1_manual) == 1;'
+            then:
+              - cover.stop: roleta_pokoj_1
+              - lambda: 'id(roleta_pokoj_1_manual)=0;'
+#      - cover.close: roleta_pokoj_1
+
+  - id: mcp_i_28
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 12
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_2_A
+  - id: mcp_i_29
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 13
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_2_B
+      
+  - id: mcp_i_30
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 14
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_2).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_pokoj_2
+            else:
+              - cover.stop: roleta_pokoj_2
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.open: roleta_pokoj_2
+        - lambda: 'id(roleta_pokoj_2_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_2_manual) == 1;'
+            then:
+              - cover.stop: roleta_pokoj_2
+              - lambda: 'id(roleta_pokoj_2_manual)=0;'
+#      - cover.open: roleta_pokoj_2
+  - id: mcp_i_31
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_16_31
+      number: 15
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_2).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_pokoj_2
+            else:
+              - cover.stop: roleta_pokoj_2
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+      - cover.close: roleta_pokoj_2
+      - lambda: 'id(roleta_pokoj_2_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_2_manual) == 1;'
+            then:
+              - cover.stop: roleta_pokoj_2
+              - lambda: 'id(roleta_pokoj_2_manual)=0;'
+#      - cover.close: roleta_pokoj_2
+      
+  - id: mcp_i_32
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 0
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_wejscie_A
+  - id: mcp_i_33
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 1
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_ogrod
+      
+  - id: mcp_i_34
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 2
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_lazienka).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_lazienka
+            else:
+              - cover.stop: roleta_lazienka
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.close: roleta_lazienka
+        - lambda: 'id(roleta_lazienka_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_lazienka_manual) == 1;'
+            then:
+              - cover.stop: roleta_lazienka
+              - lambda: 'id(roleta_lazienka_manual)=0;'
+#      - cover.close: roleta_lazienka
+  - id: mcp_i_35
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 3
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_lazienka).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_lazienka
+            else:
+              - cover.stop: roleta_lazienka
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+      - cover.open: roleta_lazienka
+      - lambda: 'id(roleta_lazienka_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_lazienka_manual) == 1;'
+            then:
+              - cover.stop: roleta_lazienka
+              - lambda: 'id(roleta_lazienka_manual)=0;'
+#      - cover.open: roleta_lazienka
+      
+  - id: mcp_i_36
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 4
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_3).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_pokoj_3
+            else:
+              - cover.stop: roleta_pokoj_3
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.close: roleta_pokoj_3
+        - lambda: 'id(roleta_pokoj_3_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_3_manual) == 1;'
+            then:
+              - cover.stop: roleta_pokoj_3
+              - lambda: 'id(roleta_pokoj_3_manual)=0;'
+#      - cover.close: roleta_pokoj_3
+  - id: mcp_i_37
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 5
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_3).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_pokoj_3
+            else:
+              - cover.stop: roleta_pokoj_3
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+      - cover.open: roleta_pokoj_3
+      - lambda: 'id(roleta_pokoj_3_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_pokoj_3_manual) == 1;'
+            then:
+              - cover.stop: roleta_pokoj_3
+              - lambda: 'id(roleta_pokoj_3_manual)=0;'
+#      - cover.open: roleta_pokoj_3
+
+  - id: mcp_i_38
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 6
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_3_A
+  - id: mcp_i_39
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 7
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_3_B
+      
+  - id: mcp_i_40
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 8
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_taras_A
+      
+  - id: mcp_i_41
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 9
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_taras_B
+      
+  - id: mcp_i_42
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 10
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_taras).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_taras
+            else:
+              - cover.stop: roleta_taras
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.open: roleta_taras
+        - lambda: 'id(roleta_taras_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_taras_manual) == 1;'
+            then:
+              - cover.stop: roleta_taras
+              - lambda: 'id(roleta_taras_manual)=0;'
+#      - cover.open: roleta_taras
+  - id: mcp_i_43
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 11
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_taras).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_taras
+            else:
+              - cover.stop: roleta_taras
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.close: roleta_taras
+        - lambda: 'id(roleta_taras_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_taras_manual) == 1;'
+            then:
+              - cover.stop: roleta_taras
+              - lambda: 'id(roleta_taras_manual)=0;'
+#      - cover.close: roleta_taras
+
+  - id: mcp_i_44
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 12
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_salon).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_salon
+            else:
+              - cover.stop: roleta_salon
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.open: roleta_salon
+        - lambda: 'id(roleta_salon_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_salon_manual) == 1;'
+            then:
+              - cover.stop: roleta_salon
+              - lambda: 'id(roleta_salon_manual)=0;'
+
+#      - cover.open: roleta_salon
+  - id: mcp_i_45
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 13
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_salon).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_salon
+            else:
+              - cover.stop: roleta_salon
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+      - cover.close: roleta_salon
+      - lambda: 'id(roleta_salon_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_salon_manual) == 1;'
+            then:
+              - cover.stop: roleta_salon
+              - lambda: 'id(roleta_salon_manual)=0;'
+#      - cover.close: roleta_salon
+
+  - id: mcp_i_46
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 14
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_47
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_32_47
+      number: 15
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_48
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 0
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_10
+  - id: mcp_i_49
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 1
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_8_A2
+      - light.toggle: lampa_8_B2
+  - id: mcp_i_50
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 2
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_8_B1
+  - id: mcp_i_51
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 3
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_7_A1
+  - id: mcp_i_52
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 4
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_7_B1
+  - id: mcp_i_53
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 5
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_7_A2
+  - id: mcp_i_54
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 6
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_7_B2
+  - id: mcp_i_55
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 7
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_6
+  - id: mcp_i_56
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 8
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_57
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 9
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_58
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 10
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_59
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 11
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_60
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 12
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_6
+  - id: mcp_i_61
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 13
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_10
+  - id: mcp_i_62
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 14
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_63
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_48_63
+      number: 15
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_64
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 0
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_12_B
+  - id: mcp_i_65
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 1
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_66
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 2
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_67
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 3
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_12_A
+  - id: mcp_i_68
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 4
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_12_B
+  - id: mcp_i_69
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 5
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_9
+  - id: mcp_i_70
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 6
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_2_B
+  - id: mcp_i_71
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 7
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_2_A
+  - id: mcp_i_72
+    platform: gpio
+#    internal: true
+    name: "kocioł_praca"
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 8
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_73
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 9
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_8_A1
+  - id: mcp_i_74
+    platform: gpio
+#    internal: true
+    name: "szambo_ostrzezenie"
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 10
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_75
+    platform: gpio
+#    internal: true
+    name: "szambo_pelne"
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 11
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_76
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 12
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_77
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 13
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_78
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 14
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_79
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_64_79
+      number: 15
+      mode:
+        input: true
+      inverted: false
+      
+  - id: mcp_i_80
+    platform: gpio
+#    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 0
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_kuchnia).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.open: roleta_kuchnia
+            else:
+              - cover.stop: roleta_kuchnia
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+        - cover.open: roleta_kuchnia
+        - lambda: 'id(roleta_kuchnia_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_kuchnia_manual) == 1;'
+            then:
+              - cover.stop: roleta_kuchnia
+              - lambda: 'id(roleta_kuchnia_manual)=0;'
+#      - cover.close: roleta_kuchnia
+  - id: mcp_i_81
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 1
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_kuchnia).current_operation == CoverOperation::COVER_OPERATION_IDLE;'
+            then:
+              - cover.close: roleta_kuchnia
+            else:
+              - cover.stop: roleta_kuchnia
+    on_multi_click:
+    - timing:
+      - ON for at least 500ms
+      then:
+      - cover.close: roleta_kuchnia
+      - lambda: 'id(roleta_kuchnia_manual)=1;'
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(roleta_kuchnia_manual) == 1;'
+            then:
+              - cover.stop: roleta_kuchnia
+              - lambda: 'id(roleta_kuchnia_manual)=0;'
+#      - cover.open: roleta_kuchnia
+
+  - id: mcp_i_82
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 2
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_8_B2
+  - id: mcp_i_83
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 3
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_8_B1
+  - id: mcp_i_84
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 4
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_85
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 5
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_11
+  - id: mcp_i_86
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 6
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_11
+  - id: mcp_i_87
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 7
+      mode:
+        input: true
+      inverted: false
+    filters:
+      - delayed_on: $debounce
+    on_press:
+      then:
+      - light.toggle: lampa_12_A
+  - id: mcp_i_88
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 8
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_89
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 9
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_90
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 10
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_91
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 11
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_92
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 12
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_93
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 13
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_94
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 14
+      mode:
+        input: true
+      inverted: false
+  - id: mcp_i_95
+    platform: gpio
+    internal: true
+    pin:
+      mcp23xxx: mcp23_i_80_95
+      number: 15
+      mode:
+        input: true
+      inverted: false
+  # - id: mcp_i_96
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 0
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_97
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 1
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_98
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 2
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_99
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 3
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_100
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 4
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_101
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 5
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_102
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 6
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_103
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 7
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_104
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 8
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_105
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 9
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_106
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 10
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_107
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 11
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_108
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 12
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_109
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 13
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_110
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 14
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_111
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_96_111
+      # number: 15
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_112
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 0
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_113
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 1
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_114
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 2
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_115
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 3
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_116
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 4
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_117
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 5
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_118
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 6
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_119
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 7
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_120
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 8
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_121
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 9
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_122
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 10
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_123
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 11
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_124
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 12
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_125
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 13
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_126
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 14
+      # mode:
+        # input: true
+      # inverted: false
+  # - id: mcp_i_127
+    # platform: gpio
+    # internal: true
+    # pin:
+      # mcp23xxx: mcp23_i_112_127
+      # number: 15
+      # mode:
+        # input: true
+      # inverted: false
+################################################################################
+output:
+- id: mcp_o_0
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 0
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_1
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 1
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_2
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 2
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_3
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 3
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_4
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 4
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_5
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 5
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_6
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 6
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_7
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 7
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_8
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 8
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_9
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 9
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_10
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 10
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_11
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 11
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_12
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 12
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_13
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 13
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_14
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 14
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_15
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_0_15
+    number: 15
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_16
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 0
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_17
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 1
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_18
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 2
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_19
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 3
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_20
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 4
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_21
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 5
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_22
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 6
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_23
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 7
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_24
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 8
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_25
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 9
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_26
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 10
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_27
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 11
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_28
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 12
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_29
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 13
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_30
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 14
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_31
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_16_31
+    number: 15
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_32
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 0
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_33
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 1
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_34
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 2
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_35
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 3
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_36
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 4
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_37
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 5
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_38
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 6
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_39
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 7
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_40
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 8
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_41
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 9
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_42
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 10
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_43
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 11
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_44
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 12
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_45
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 13
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_46
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 14
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_47
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_32_47
+    number: 15
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_48
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 0
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_49
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 1
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_50
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 2
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_51
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 3
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_52
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 4
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_53
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 5
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_54
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 6
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_55
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 7
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_56
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 8
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_57
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 9
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_58
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 10
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_59
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 11
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_60
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 12
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_61
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 13
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_62
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 14
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_63
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_48_63
+    number: 15
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_64
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 0
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_65
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 1
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_66
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 2
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_67
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 3
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_68
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 4
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_69
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 5
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_70
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 6
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_71
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 7
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_72
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 8
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_73
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 9
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_74
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 10
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_75
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 11
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_76
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 12
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_77
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 13
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_78
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 14
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_79
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_64_79
+    number: 15
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_80
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 0
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_81
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 1
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_82
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 2
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_83
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 3
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_84
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 4
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_85
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 5
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_86
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 6
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_87
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 7
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_88
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 8
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_89
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 9
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_90
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 10
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_91
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 11
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_92
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 12
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_93
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 13
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_94
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 14
+    mode:
+      output: true
+    inverted: false
+- id: mcp_o_95
+  platform: gpio
+  pin:
+    mcp23xxx: mcp23_o_80_95
+    number: 15
+    mode:
+      output: true
+    inverted: false
+# - id: mcp_o_96
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 0
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_97
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 1
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_98
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 2
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_99
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 3
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_100
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 4
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_101
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 5
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_102
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 6
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_103
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 7
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_104
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 8
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_105
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 9
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_106
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 10
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_107
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 11
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_108
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 12
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_109
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 13
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_110
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 14
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_111
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_96_111
+    # number: 15
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_112
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 0
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_113
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 1
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_114
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 2
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_115
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 3
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_116
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 4
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_117
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 5
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_118
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 6
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_119
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 7
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_120
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 8
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_121
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 9
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_122
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 10
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_123
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 11
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_124
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 12
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_125
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 13
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_126
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 14
+    # mode:
+      # output: true
+    # inverted: false
+# - id: mcp_o_127
+  # platform: gpio
+  # pin:
+    # mcp23xxx: mcp23_o_112_127
+    # number: 15
+    # mode:
+      # output: true
+    # inverted: false
